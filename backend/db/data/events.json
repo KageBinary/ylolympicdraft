@@ -1,0 +1,814 @@
+[
+  {
+    "sport": "Alpine Skiing",
+    "name": "Men's Downhill",
+    "event_key": "alpine_skiing_mens_downhill",
+    "is_team_event": false,
+    "sort_order": 1
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Men's Giant Slalom",
+    "event_key": "alpine_skiing_mens_giant_slalom",
+    "is_team_event": false,
+    "sort_order": 2
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Men's Slalom",
+    "event_key": "alpine_skiing_mens_slalom",
+    "is_team_event": false,
+    "sort_order": 3
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Men's Super-G",
+    "event_key": "alpine_skiing_mens_super_g",
+    "is_team_event": false,
+    "sort_order": 4
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Men's Team Combined",
+    "event_key": "alpine_skiing_mens_team_combined",
+    "is_team_event": true,
+    "sort_order": 5
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Women's Downhill",
+    "event_key": "alpine_skiing_womens_downhill",
+    "is_team_event": false,
+    "sort_order": 6
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Women's Giant Slalom",
+    "event_key": "alpine_skiing_womens_giant_slalom",
+    "is_team_event": false,
+    "sort_order": 7
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Women's Slalom",
+    "event_key": "alpine_skiing_womens_slalom",
+    "is_team_event": false,
+    "sort_order": 8
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Women's Super-G",
+    "event_key": "alpine_skiing_womens_super_g",
+    "is_team_event": false,
+    "sort_order": 9
+  },
+  {
+    "sport": "Alpine Skiing",
+    "name": "Women's Team Combined",
+    "event_key": "alpine_skiing_womens_team_combined",
+    "is_team_event": true,
+    "sort_order": 10
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Men's 10km Sprint",
+    "event_key": "biathlon_mens_10km_sprint",
+    "is_team_event": false,
+    "sort_order": 11
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Men's 12.5km Pursuit",
+    "event_key": "biathlon_mens_12_5km_pursuit",
+    "is_team_event": false,
+    "sort_order": 12
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Men's 15km Mass Start",
+    "event_key": "biathlon_mens_15km_mass_start",
+    "is_team_event": false,
+    "sort_order": 13
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Men's 20km Individual",
+    "event_key": "biathlon_mens_20km_individual",
+    "is_team_event": false,
+    "sort_order": 14
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Men's 4x7.5km Relay",
+    "event_key": "biathlon_mens_4x7_5km_relay",
+    "is_team_event": true,
+    "sort_order": 15
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Mixed Relay 4x6km (M+W)",
+    "event_key": "biathlon_mixed_relay_4x6km_m_w",
+    "is_team_event": true,
+    "sort_order": 16
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Women's 10km Pursuit",
+    "event_key": "biathlon_womens_10km_pursuit",
+    "is_team_event": false,
+    "sort_order": 17
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Women's 12.5km Mass Start",
+    "event_key": "biathlon_womens_12_5km_mass_start",
+    "is_team_event": false,
+    "sort_order": 18
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Women's 15km Individual",
+    "event_key": "biathlon_womens_15km_individual",
+    "is_team_event": false,
+    "sort_order": 19
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Women's 4x6km Relay",
+    "event_key": "biathlon_womens_4x6km_relay",
+    "is_team_event": true,
+    "sort_order": 20
+  },
+  {
+    "sport": "Biathlon",
+    "name": "Women's 7.5km Sprint",
+    "event_key": "biathlon_womens_7_5km_sprint",
+    "is_team_event": false,
+    "sort_order": 21
+  },
+  {
+    "sport": "Bobsleigh",
+    "name": "Men's Four-man",
+    "event_key": "bobsleigh_mens_four_man",
+    "is_team_event": false,
+    "sort_order": 22
+  },
+  {
+    "sport": "Bobsleigh",
+    "name": "Men's Two-man",
+    "event_key": "bobsleigh_mens_two_man",
+    "is_team_event": false,
+    "sort_order": 23
+  },
+  {
+    "sport": "Bobsleigh",
+    "name": "Women's Monobob",
+    "event_key": "bobsleigh_womens_monobob",
+    "is_team_event": false,
+    "sort_order": 24
+  },
+  {
+    "sport": "Bobsleigh",
+    "name": "Women's Two-woman",
+    "event_key": "bobsleigh_womens_two_woman",
+    "is_team_event": false,
+    "sort_order": 25
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Men's 10km",
+    "event_key": "cross_country_skiing_mens_10km",
+    "is_team_event": false,
+    "sort_order": 26
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Men's 10km + 10km Skiathlon",
+    "event_key": "cross_country_skiing_mens_10km_10km_skiathlon",
+    "is_team_event": false,
+    "sort_order": 27
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Men's 4x7.5km Relay",
+    "event_key": "cross_country_skiing_mens_4x7_5km_relay",
+    "is_team_event": true,
+    "sort_order": 28
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Men's 50km",
+    "event_key": "cross_country_skiing_mens_50km",
+    "is_team_event": false,
+    "sort_order": 29
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Men's Sprint Classic",
+    "event_key": "cross_country_skiing_mens_sprint_classic",
+    "is_team_event": false,
+    "sort_order": 30
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Men's Team Sprint Free",
+    "event_key": "cross_country_skiing_mens_team_sprint_free",
+    "is_team_event": true,
+    "sort_order": 31
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Women's 10km",
+    "event_key": "cross_country_skiing_womens_10km",
+    "is_team_event": false,
+    "sort_order": 32
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Women's 10km + 10km Skiathlon",
+    "event_key": "cross_country_skiing_womens_10km_10km_skiathlon",
+    "is_team_event": false,
+    "sort_order": 33
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Women's 4x7.5km Relay",
+    "event_key": "cross_country_skiing_womens_4x7_5km_relay",
+    "is_team_event": true,
+    "sort_order": 34
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Women's 50km",
+    "event_key": "cross_country_skiing_womens_50km",
+    "is_team_event": false,
+    "sort_order": 35
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Women's Sprint Classic",
+    "event_key": "cross_country_skiing_womens_sprint_classic",
+    "is_team_event": false,
+    "sort_order": 36
+  },
+  {
+    "sport": "Cross-Country Skiing",
+    "name": "Women's Team Sprint Free",
+    "event_key": "cross_country_skiing_womens_team_sprint_free",
+    "is_team_event": true,
+    "sort_order": 37
+  },
+  {
+    "sport": "Curling",
+    "name": "Men's Tournament",
+    "event_key": "curling_mens_tournament",
+    "is_team_event": true,
+    "sort_order": 38
+  },
+  {
+    "sport": "Curling",
+    "name": "Mixed Doubles",
+    "event_key": "curling_mixed_doubles",
+    "is_team_event": true,
+    "sort_order": 39
+  },
+  {
+    "sport": "Curling",
+    "name": "Women's Tournament",
+    "event_key": "curling_womens_tournament",
+    "is_team_event": true,
+    "sort_order": 40
+  },
+  {
+    "sport": "Figure Skating",
+    "name": "Ice Dance",
+    "event_key": "figure_skating_ice_dance",
+    "is_team_event": false,
+    "sort_order": 41
+  },
+  {
+    "sport": "Figure Skating",
+    "name": "Men's Singles",
+    "event_key": "figure_skating_mens_singles",
+    "is_team_event": false,
+    "sort_order": 42
+  },
+  {
+    "sport": "Figure Skating",
+    "name": "Pairs",
+    "event_key": "figure_skating_pairs",
+    "is_team_event": true,
+    "sort_order": 43
+  },
+  {
+    "sport": "Figure Skating",
+    "name": "Team Event",
+    "event_key": "figure_skating_team_event",
+    "is_team_event": true,
+    "sort_order": 44
+  },
+  {
+    "sport": "Figure Skating",
+    "name": "Women's Singles",
+    "event_key": "figure_skating_womens_singles",
+    "is_team_event": false,
+    "sort_order": 45
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Aerials",
+    "event_key": "freestyle_skiing_mens_aerials",
+    "is_team_event": false,
+    "sort_order": 46
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Dual Moguls",
+    "event_key": "freestyle_skiing_mens_dual_moguls",
+    "is_team_event": false,
+    "sort_order": 47
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Freeski Big Air",
+    "event_key": "freestyle_skiing_mens_freeski_big_air",
+    "is_team_event": false,
+    "sort_order": 48
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Freeski Halfpipe",
+    "event_key": "freestyle_skiing_mens_freeski_halfpipe",
+    "is_team_event": false,
+    "sort_order": 49
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Freeski Slopestyle",
+    "event_key": "freestyle_skiing_mens_freeski_slopestyle",
+    "is_team_event": false,
+    "sort_order": 50
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Moguls",
+    "event_key": "freestyle_skiing_mens_moguls",
+    "is_team_event": false,
+    "sort_order": 51
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Men's Ski Cross",
+    "event_key": "freestyle_skiing_mens_ski_cross",
+    "is_team_event": false,
+    "sort_order": 52
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Mixed Team Aerials",
+    "event_key": "freestyle_skiing_mixed_team_aerials",
+    "is_team_event": true,
+    "sort_order": 53
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Aerials",
+    "event_key": "freestyle_skiing_womens_aerials",
+    "is_team_event": false,
+    "sort_order": 54
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Dual Moguls",
+    "event_key": "freestyle_skiing_womens_dual_moguls",
+    "is_team_event": false,
+    "sort_order": 55
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Freeski Big Air",
+    "event_key": "freestyle_skiing_womens_freeski_big_air",
+    "is_team_event": false,
+    "sort_order": 56
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Freeski Halfpipe",
+    "event_key": "freestyle_skiing_womens_freeski_halfpipe",
+    "is_team_event": false,
+    "sort_order": 57
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Freeski Slopestyle",
+    "event_key": "freestyle_skiing_womens_freeski_slopestyle",
+    "is_team_event": false,
+    "sort_order": 58
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Moguls",
+    "event_key": "freestyle_skiing_womens_moguls",
+    "is_team_event": false,
+    "sort_order": 59
+  },
+  {
+    "sport": "Freestyle Skiing",
+    "name": "Women's Ski Cross",
+    "event_key": "freestyle_skiing_womens_ski_cross",
+    "is_team_event": false,
+    "sort_order": 60
+  },
+  {
+    "sport": "Ice Hockey",
+    "name": "Men's Tournament",
+    "event_key": "ice_hockey_mens_tournament",
+    "is_team_event": true,
+    "sort_order": 61
+  },
+  {
+    "sport": "Ice Hockey",
+    "name": "Women's Tournament",
+    "event_key": "ice_hockey_womens_tournament",
+    "is_team_event": true,
+    "sort_order": 62
+  },
+  {
+    "sport": "Luge",
+    "name": "Men's Doubles",
+    "event_key": "luge_mens_doubles",
+    "is_team_event": true,
+    "sort_order": 63
+  },
+  {
+    "sport": "Luge",
+    "name": "Men's Singles",
+    "event_key": "luge_mens_singles",
+    "is_team_event": false,
+    "sort_order": 64
+  },
+  {
+    "sport": "Luge",
+    "name": "Team Relay",
+    "event_key": "luge_team_relay",
+    "is_team_event": true,
+    "sort_order": 65
+  },
+  {
+    "sport": "Luge",
+    "name": "Women's Doubles",
+    "event_key": "luge_womens_doubles",
+    "is_team_event": true,
+    "sort_order": 66
+  },
+  {
+    "sport": "Luge",
+    "name": "Women's Singles",
+    "event_key": "luge_womens_singles",
+    "is_team_event": false,
+    "sort_order": 67
+  },
+  {
+    "sport": "Nordic Combined",
+    "name": "Men's Individual (Large Hill)",
+    "event_key": "nordic_combined_mens_individual_large_hill",
+    "is_team_event": false,
+    "sort_order": 68
+  },
+  {
+    "sport": "Nordic Combined",
+    "name": "Men's Individual (Normal Hill)",
+    "event_key": "nordic_combined_mens_individual_normal_hill",
+    "is_team_event": false,
+    "sort_order": 69
+  },
+  {
+    "sport": "Nordic Combined",
+    "name": "Men's Team Sprint",
+    "event_key": "nordic_combined_mens_team_sprint",
+    "is_team_event": true,
+    "sort_order": 70
+  },
+  {
+    "sport": "Short Track",
+    "name": "Men's 1000m",
+    "event_key": "short_track_mens_1000m",
+    "is_team_event": false,
+    "sort_order": 71
+  },
+  {
+    "sport": "Short Track",
+    "name": "Men's 1500m",
+    "event_key": "short_track_mens_1500m",
+    "is_team_event": false,
+    "sort_order": 72
+  },
+  {
+    "sport": "Short Track",
+    "name": "Men's 5000m Relay",
+    "event_key": "short_track_mens_5000m_relay",
+    "is_team_event": true,
+    "sort_order": 73
+  },
+  {
+    "sport": "Short Track",
+    "name": "Men's 500m",
+    "event_key": "short_track_mens_500m",
+    "is_team_event": false,
+    "sort_order": 74
+  },
+  {
+    "sport": "Short Track",
+    "name": "Mixed Team Relay",
+    "event_key": "short_track_mixed_team_relay",
+    "is_team_event": true,
+    "sort_order": 75
+  },
+  {
+    "sport": "Short Track",
+    "name": "Women's 1000m",
+    "event_key": "short_track_womens_1000m",
+    "is_team_event": false,
+    "sort_order": 76
+  },
+  {
+    "sport": "Short Track",
+    "name": "Women's 1500m",
+    "event_key": "short_track_womens_1500m",
+    "is_team_event": false,
+    "sort_order": 77
+  },
+  {
+    "sport": "Short Track",
+    "name": "Women's 3000m Relay",
+    "event_key": "short_track_womens_3000m_relay",
+    "is_team_event": true,
+    "sort_order": 78
+  },
+  {
+    "sport": "Short Track",
+    "name": "Women's 500m",
+    "event_key": "short_track_womens_500m",
+    "is_team_event": false,
+    "sort_order": 79
+  },
+  {
+    "sport": "Skeleton",
+    "name": "Men's Singles",
+    "event_key": "skeleton_mens_singles",
+    "is_team_event": false,
+    "sort_order": 80
+  },
+  {
+    "sport": "Skeleton",
+    "name": "Mixed Team",
+    "event_key": "skeleton_mixed_team",
+    "is_team_event": true,
+    "sort_order": 81
+  },
+  {
+    "sport": "Skeleton",
+    "name": "Women's Singles",
+    "event_key": "skeleton_womens_singles",
+    "is_team_event": false,
+    "sort_order": 82
+  },
+  {
+    "sport": "Ski Jumping",
+    "name": "Men's Normal Hill Individual",
+    "event_key": "ski_jumping_mens_normal_hill_individual",
+    "is_team_event": false,
+    "sort_order": 83
+  },
+  {
+    "sport": "Ski Jumping",
+    "name": "Men's Super Team",
+    "event_key": "ski_jumping_mens_super_team",
+    "is_team_event": true,
+    "sort_order": 84
+  },
+  {
+    "sport": "Ski Jumping",
+    "name": "Mens' Large Hill Individual",
+    "event_key": "ski_jumping_mens_large_hill_individual",
+    "is_team_event": false,
+    "sort_order": 85
+  },
+  {
+    "sport": "Ski Jumping",
+    "name": "Mixed Team",
+    "event_key": "ski_jumping_mixed_team",
+    "is_team_event": true,
+    "sort_order": 86
+  },
+  {
+    "sport": "Ski Jumping",
+    "name": "Women's Large Hill Individual",
+    "event_key": "ski_jumping_womens_large_hill_individual",
+    "is_team_event": false,
+    "sort_order": 87
+  },
+  {
+    "sport": "Ski Jumping",
+    "name": "Women's Normal Hill Individual",
+    "event_key": "ski_jumping_womens_normal_hill_individual",
+    "is_team_event": false,
+    "sort_order": 88
+  },
+  {
+    "sport": "Ski Mountaineering",
+    "name": "Men's Sprint",
+    "event_key": "ski_mountaineering_mens_sprint",
+    "is_team_event": false,
+    "sort_order": 89
+  },
+  {
+    "sport": "Ski Mountaineering",
+    "name": "Mixed Relay",
+    "event_key": "ski_mountaineering_mixed_relay",
+    "is_team_event": true,
+    "sort_order": 90
+  },
+  {
+    "sport": "Ski Mountaineering",
+    "name": "Women's Sprint",
+    "event_key": "ski_mountaineering_womens_sprint",
+    "is_team_event": false,
+    "sort_order": 91
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Men's Parallel Giant Slalom",
+    "event_key": "snowboard_mens_parallel_giant_slalom",
+    "is_team_event": false,
+    "sort_order": 92
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Men's Snowboard Big Air",
+    "event_key": "snowboard_mens_snowboard_big_air",
+    "is_team_event": false,
+    "sort_order": 93
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Men's Snowboard Cross",
+    "event_key": "snowboard_mens_snowboard_cross",
+    "is_team_event": false,
+    "sort_order": 94
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Men's Snowboard Halfpipe",
+    "event_key": "snowboard_mens_snowboard_halfpipe",
+    "is_team_event": false,
+    "sort_order": 95
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Men's Snowboard Slopestyle",
+    "event_key": "snowboard_mens_snowboard_slopestyle",
+    "is_team_event": false,
+    "sort_order": 96
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Mixed Team",
+    "event_key": "snowboard_mixed_team",
+    "is_team_event": true,
+    "sort_order": 97
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Women's Parallel Giant Slalom",
+    "event_key": "snowboard_womens_parallel_giant_slalom",
+    "is_team_event": false,
+    "sort_order": 98
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Women's Snowboard Big Air",
+    "event_key": "snowboard_womens_snowboard_big_air",
+    "is_team_event": false,
+    "sort_order": 99
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Women's Snowboard Cross",
+    "event_key": "snowboard_womens_snowboard_cross",
+    "is_team_event": false,
+    "sort_order": 100
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Women's Snowboard Halfpipe",
+    "event_key": "snowboard_womens_snowboard_halfpipe",
+    "is_team_event": false,
+    "sort_order": 101
+  },
+  {
+    "sport": "Snowboard",
+    "name": "Women's Snowboard Slopestyle",
+    "event_key": "snowboard_womens_snowboard_slopestyle",
+    "is_team_event": false,
+    "sort_order": 102
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's 10000m",
+    "event_key": "speed_skating_mens_10000m",
+    "is_team_event": false,
+    "sort_order": 103
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's 1000m",
+    "event_key": "speed_skating_mens_1000m",
+    "is_team_event": false,
+    "sort_order": 104
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's 1500m",
+    "event_key": "speed_skating_mens_1500m",
+    "is_team_event": false,
+    "sort_order": 105
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's 5000m",
+    "event_key": "speed_skating_mens_5000m",
+    "is_team_event": false,
+    "sort_order": 106
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's 500m",
+    "event_key": "speed_skating_mens_500m",
+    "is_team_event": false,
+    "sort_order": 107
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's Mass Start",
+    "event_key": "speed_skating_mens_mass_start",
+    "is_team_event": false,
+    "sort_order": 108
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Men's Team Pursuit",
+    "event_key": "speed_skating_mens_team_pursuit",
+    "is_team_event": true,
+    "sort_order": 109
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's 1000m",
+    "event_key": "speed_skating_womens_1000m",
+    "is_team_event": false,
+    "sort_order": 110
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's 1500m",
+    "event_key": "speed_skating_womens_1500m",
+    "is_team_event": false,
+    "sort_order": 111
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's 3000m",
+    "event_key": "speed_skating_womens_3000m",
+    "is_team_event": false,
+    "sort_order": 112
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's 5000m",
+    "event_key": "speed_skating_womens_5000m",
+    "is_team_event": false,
+    "sort_order": 113
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's 500m",
+    "event_key": "speed_skating_womens_500m",
+    "is_team_event": false,
+    "sort_order": 114
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's Mass Start",
+    "event_key": "speed_skating_womens_mass_start",
+    "is_team_event": false,
+    "sort_order": 115
+  },
+  {
+    "sport": "Speed Skating",
+    "name": "Women's Team Pursuit",
+    "event_key": "speed_skating_womens_team_pursuit",
+    "is_team_event": true,
+    "sort_order": 116
+  }
+]
