@@ -139,9 +139,10 @@ def start_draft(
     """
     Commissioner starts the draft:
     - generates league_events ONCE using leagues.draft_rounds
-      - auto events: (total events - draft_rounds) chosen randomly
-      - draft events: the remaining events
+      - draft events: first N events by sort_order
+      - auto events: remaining events
       - sort_order preserved from events.sort_order
+    - auto-assigns one random entry per member for each auto event
     - randomizes draft order ONCE by assigning league_members.draft_position = 1..N
     - sets league.status = 'drafting'
     """
@@ -178,28 +179,112 @@ def start_draft(
 
     auto_count = events_count - draft_rounds
 
-    # Generate league_events: randomly pick auto events, remaining are draft events
+    # Generate league_events: first N events are draft, remaining are auto
     db.execute(
         text(
             """
-            with auto_events as (
+            with draft_events as (
               select id
               from public.events
-              order by random()
-              limit :auto_n
+              order by sort_order asc
+              limit :draft_n
             )
             insert into public.league_events (league_id, event_id, mode, sort_order)
             select
               :lid,
               e.id,
-              case when a.id is not null then 'auto' else 'draft' end as mode,
+              case when d.id is not null then 'draft' else 'auto' end as mode,
               e.sort_order
             from public.events e
-            left join auto_events a on a.id = e.id
+            left join draft_events d on d.id = e.id
             """
         ),
-        {"lid": league_id, "auto_n": auto_count},
+        {"lid": league_id, "draft_n": draft_rounds},
     )
+
+    member_count_row = db.execute(
+        text("select count(*) as c from public.league_members where league_id = :lid"),
+        {"lid": league_id},
+    ).mappings().first()
+    member_count = int(member_count_row["c"]) if member_count_row else 0
+
+    if auto_count > 0 and member_count > 0:
+        insufficient_entries = db.execute(
+            text(
+                """
+                with draft_events as (
+                  select id
+                  from public.events
+                  order by sort_order asc
+                  limit :draft_n
+                )
+                select e.id, count(ee.id) as entry_count
+                from public.events e
+                left join draft_events d on d.id = e.id
+                left join public.event_entries ee on ee.event_id = e.id
+                where d.id is null
+                group by e.id
+                having count(ee.id) < :member_count
+                limit 1
+                """
+            ),
+            {"draft_n": draft_rounds, "member_count": member_count},
+        ).mappings().first()
+        if insufficient_entries:
+            raise HTTPException(
+                status_code=409,
+                detail="Not enough entries to auto-assign for all auto events.",
+            )
+
+        db.execute(
+            text(
+                """
+                with draft_events as (
+                  select id
+                  from public.events
+                  order by sort_order asc
+                  limit :draft_n
+                ),
+                auto_events as (
+                  select id
+                  from public.events
+                  where id not in (select id from draft_events)
+                ),
+                members as (
+                  select
+                    user_id,
+                    row_number() over (order by user_id) as pos
+                  from public.league_members
+                  where league_id = :lid
+                ),
+                ranked_entries as (
+                  select
+                    ee.event_id,
+                    ee.entry_key,
+                    ee.entry_name,
+                    row_number() over (
+                      partition by ee.event_id
+                      order by random()
+                    ) as pos
+                  from public.event_entries ee
+                  join auto_events ae on ae.id = ee.event_id
+                )
+                insert into public.draft_picks (league_id, event_id, user_id, entry_key, entry_name)
+                select
+                  :lid,
+                  ae.id,
+                  m.user_id,
+                  re.entry_key,
+                  re.entry_name
+                from auto_events ae
+                cross join members m
+                join ranked_entries re
+                  on re.event_id = ae.id
+                 and re.pos = m.pos
+                """
+            ),
+            {"lid": league_id, "draft_n": draft_rounds},
+        )
 
     # Assign random draft positions to current members (1..N)
     db.execute(
