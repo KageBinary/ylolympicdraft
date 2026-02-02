@@ -58,16 +58,27 @@ def _get_members_in_draft_order(db: Session, league_id: str):
     return members
 
 
-def _get_events_in_order(db: Session):
-    return db.execute(
+def _get_events_in_order(db: Session, league_id: str):
+    # League-specific draft events (generated on /leagues/{league_id}/start)
+    events = db.execute(
         text(
             """
-            select id, sport, name, event_key, is_team_event, sort_order
-            from public.events
-            order by sort_order asc
+            select e.id, e.sport, e.name, e.event_key, e.is_team_event, le.sort_order
+            from public.league_events le
+            join public.events e on e.id = le.event_id
+            where le.league_id = :lid and le.mode = 'draft'
+            order by le.sort_order asc
             """
-        )
+        ),
+        {"lid": league_id},
     ).mappings().all()
+
+    if not events:
+        # Either events not seeded or league_events not generated yet.
+        # start_draft generates league_events, so this message is the most helpful.
+        raise HTTPException(status_code=409, detail="Draft events not set. Commissioner must start the draft.")
+
+    return events
 
 
 def _get_picks_for_event(db: Session, league_id: str, event_id: str):
@@ -89,9 +100,7 @@ def _get_picks_for_event(db: Session, league_id: str, event_id: str):
 def _current_state(db: Session, league_id: str):
     members = _get_members_in_draft_order(db, league_id)
 
-    events = _get_events_in_order(db)
-    if not events:
-        raise HTTPException(status_code=400, detail="No events seeded")
+    events = _get_events_in_order(db, league_id)
 
     n = len(members)
 
@@ -141,6 +150,14 @@ def make_pick(
 ):
     league_id = body.league_id
 
+    entry_key = body.entry_key.strip()
+    entry_name = body.entry_name.strip()
+
+    if not entry_key:
+        raise HTTPException(status_code=400, detail="entry_key cannot be blank")
+    if not entry_name:
+        raise HTTPException(status_code=400, detail="entry_name cannot be blank")
+
     _require_member(db, league_id, user["id"])
     _require_drafting(db, league_id)
 
@@ -167,8 +184,8 @@ def make_pick(
                 "lid": league_id,
                 "eid": event_id,
                 "uid": str(user["id"]),
-                "ek": body.entry_key.strip(),
-                "en": body.entry_name.strip(),
+                "ek": entry_key,
+                "en": entry_name,
             },
         ).mappings().first()
 
@@ -176,7 +193,16 @@ def make_pick(
 
     except Exception as e:
         db.rollback()
-        # Show the real DB error so your smoke test can tell you exactly what constraint/schema failed.
-        raise HTTPException(status_code=409, detail=f"Pick rejected: {str(e)}")
+
+        msg = str(e).lower()
+
+        # Turn common constraint failures into friendly messages
+        if "uq_pick_user_per_event" in msg or ("unique" in msg and "user" in msg and "event" in msg):
+            raise HTTPException(status_code=409, detail="You already picked for this event")
+        if "uq_pick_no_dupe_entry" in msg or ("unique" in msg and "entry" in msg):
+            raise HTTPException(status_code=409, detail="That entry was already drafted for this event")
+
+        # Generic conflict (don't leak internals)
+        raise HTTPException(status_code=409, detail="Pick rejected")
 
     return {"ok": True, "pick": dict(row), "state": _current_state(db, league_id)}

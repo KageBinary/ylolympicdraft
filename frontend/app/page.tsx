@@ -1,65 +1,65 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
+      <section className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <div className="rounded-3xl border border-white/70 bg-white/80 p-8 shadow-xl shadow-sky-900/10 backdrop-blur sm:p-10">
+          <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
+            Snake Draft Platform
+          </div>
+          <h1 className="mt-5 text-4xl font-black leading-tight text-slate-900 sm:text-5xl">
+            Build your own
+            <br />
+            Olympic fantasy draft
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+          <p className="mt-5 max-w-xl text-base text-slate-600 sm:text-lg">
+            Create a league, invite friends, and draft athletes event-by-event with live order updates.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/register"
+              className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Create account
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50"
             >
-              Learning
-            </a>{" "}
-            center.
+              Login
+            </Link>
+            <Link
+              href="/leagues"
+              className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-800 transition hover:-translate-y-0.5 hover:bg-emerald-100"
+            >
+              Open leagues
+            </Link>
+          </div>
+          <p className="mt-6 text-sm text-slate-500">
+            Already logged in? Jump to <span className="font-mono text-slate-700">/leagues</span>.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <aside className="rounded-3xl border border-white/70 bg-gradient-to-b from-slate-900 to-slate-800 p-8 text-white shadow-xl shadow-slate-900/30 sm:p-10">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-sky-200">
+            How it works
+          </h2>
+          <ol className="mt-5 grid gap-4 text-sm">
+            <li className="rounded-xl border border-white/15 bg-white/5 p-4">
+              <span className="text-sky-200">01</span> Create a league and set draft rounds.
+            </li>
+            <li className="rounded-xl border border-white/15 bg-white/5 p-4">
+              <span className="text-sky-200">02</span> Share your invite code with friends.
+            </li>
+            <li className="rounded-xl border border-white/15 bg-white/5 p-4">
+              <span className="text-sky-200">03</span> Draft event-by-event in live snake order.
+            </li>
+          </ol>
+        </aside>
+      </section>
+    </main>
   );
 }

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -9,7 +10,6 @@ from core.security import (
     verify_password,
     create_access_token,
 )
-from api.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -41,6 +41,14 @@ def _get_user_by_username(db: Session, username: str):
     ).mappings().first()
 
 
+def _user_public(user_row):
+    return {
+        "id": str(user_row["id"]),
+        "username": user_row["username"],
+        "created_at": user_row["created_at"],
+    }
+
+
 # ---------- Routes ----------
 
 @router.post("/register")
@@ -67,8 +75,12 @@ def register(
         ).mappings().first()
 
         db.commit()
-    except Exception:
+    except Exception as e:
         db.rollback()
+        # If the DB unique constraint on users.username trips, return 409 (not 500).
+        msg = str(e).lower()
+        if "unique" in msg and "username" in msg:
+            raise HTTPException(status_code=409, detail="Username already taken")
         raise HTTPException(status_code=500, detail="Failed to create user")
 
     token = create_access_token({"sub": str(user["id"])})
@@ -82,9 +94,37 @@ def register(
 
 @router.post("/login")
 def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    """
+    OAuth2 Password Flow login (Swagger uses this).
+    Sends credentials as form data: username=...&password=...
+    """
+    user = _get_user_by_username(db, form_data.username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    if not verify_password(form_data.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    token = create_access_token({"sub": str(user["id"])})
+
+    return {
+        "user": _user_public(user),
+        "access_token": token,
+        "token_type": "bearer",
+    }
+
+
+@router.post("/login-json")
+def login_json(
     body: LoginIn,
     db: Session = Depends(get_db),
 ):
+    """
+    Optional JSON login endpoint (handy for frontends that post JSON).
+    """
     user = _get_user_by_username(db, body.username)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
@@ -95,16 +135,7 @@ def login(
     token = create_access_token({"sub": str(user["id"])})
 
     return {
-        "user": {
-            "id": str(user["id"]),
-            "username": user["username"],
-            "created_at": user["created_at"],
-        },
+        "user": _user_public(user),
         "access_token": token,
         "token_type": "bearer",
     }
-
-
-@router.get("/me")
-def auth_me(user=Depends(get_current_user)):
-    return user

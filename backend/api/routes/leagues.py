@@ -20,7 +20,7 @@ def _make_league_code() -> str:
 def _require_commissioner(db: Session, league_id: str, user_id: str) -> None:
     row = db.execute(
         text("select commissioner_id from public.leagues where id=:lid"),
-        {"lid": league_id},
+        {"lid": league_id, "uid": user_id},
     ).mappings().first()
 
     if not row:
@@ -41,6 +41,7 @@ def _require_member(db: Session, league_id: str, user_id: str) -> None:
 
 class CreateLeagueIn(BaseModel):
     name: str = Field(default="YL Olympic Draft", min_length=3, max_length=60)
+    draft_rounds: int = Field(default=20, ge=1, le=116)
 
 
 class JoinLeagueIn(BaseModel):
@@ -53,42 +54,45 @@ def create_league(
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    # Ensure unique code (retry a few times)
     league_row = None
+
     for _ in range(5):
         code = _make_league_code()
         try:
+            # 1) create league (NO commit yet)
             league_row = db.execute(
                 text(
                     """
-                    insert into public.leagues (code, name, status, commissioner_id)
-                    values (:code, :name, 'lobby', :cid)
-                    returning id, code, name, status, commissioner_id, created_at
+                    insert into public.leagues (code, name, status, commissioner_id, draft_rounds)
+                    values (:code, :name, 'lobby', :cid, :dr)
+                    returning id, code, name, status, commissioner_id, draft_rounds, created_at
                     """
                 ),
-                {"code": code, "name": body.name, "cid": user["id"]},
+                {"code": code, "name": body.name, "cid": user["id"], "dr": body.draft_rounds},
             ).mappings().first()
+
+            # 2) auto-join commissioner (still NO commit yet)
+            db.execute(
+                text(
+                    """
+                    insert into public.league_members (league_id, user_id)
+                    values (:lid, :uid)
+                    on conflict do nothing
+                    """
+                ),
+                {"lid": league_row["id"], "uid": user["id"]},
+            )
+
+            # 3) commit ONCE (atomic)
             db.commit()
             break
+
         except Exception:
             db.rollback()
             league_row = None
 
     if not league_row:
-        raise HTTPException(status_code=500, detail="Failed to create league code")
-
-    # Auto-join commissioner
-    db.execute(
-        text(
-            """
-            insert into public.league_members (league_id, user_id)
-            values (:lid, :uid)
-            on conflict do nothing
-            """
-        ),
-        {"lid": league_row["id"], "uid": user["id"]},
-    )
-    db.commit()
+        raise HTTPException(status_code=500, detail="Failed to create league")
 
     return dict(league_row)
 
@@ -134,13 +138,17 @@ def start_draft(
 ):
     """
     Commissioner starts the draft:
+    - generates league_events ONCE using leagues.draft_rounds
+      - auto events: (total events - draft_rounds) chosen randomly
+      - draft events: the remaining events
+      - sort_order preserved from events.sort_order
     - randomizes draft order ONCE by assigning league_members.draft_position = 1..N
     - sets league.status = 'drafting'
     """
     _require_commissioner(db, league_id, user["id"])
 
     league = db.execute(
-        text("select status from public.leagues where id=:lid"),
+        text("select status, draft_rounds from public.leagues where id=:lid"),
         {"lid": league_id},
     ).mappings().first()
 
@@ -150,7 +158,49 @@ def start_draft(
     if league["status"] != "lobby":
         raise HTTPException(status_code=409, detail=f"League not in lobby (status: {league['status']})")
 
-    # Assign random draft positions to current members (1..N)
+    # Ensure events are seeded
+    events_count_row = db.execute(text("select count(*) as c from public.events")).mappings().first()
+    events_count = int(events_count_row["c"]) if events_count_row else 0
+    if events_count <= 0:
+        raise HTTPException(status_code=400, detail="No events seeded")
+
+    draft_rounds = int(league["draft_rounds"])
+    if draft_rounds < 1 or draft_rounds > events_count:
+        raise HTTPException(status_code=400, detail="Invalid draft_rounds for current events")
+
+    # Prevent double-generation (events should be generated exactly once)
+    already = db.execute(
+        text("select 1 from public.league_events where league_id=:lid limit 1"),
+        {"lid": league_id},
+    ).first()
+    if already:
+        raise HTTPException(status_code=409, detail="League events already generated")
+
+    auto_count = events_count - draft_rounds
+
+    # Generate league_events: randomly pick auto events, remaining are draft events
+    db.execute(
+        text(
+            """
+            with auto_events as (
+              select id
+              from public.events
+              order by random()
+              limit :auto_n
+            )
+            insert into public.league_events (league_id, event_id, mode, sort_order)
+            select
+              :lid,
+              e.id,
+              case when a.id is not null then 'auto' else 'draft' end as mode,
+              e.sort_order
+            from public.events e
+            left join auto_events a on a.id = e.id
+            """
+        ),
+        {"lid": league_id, "auto_n": auto_count},
+    )
+
     # Assign random draft positions to current members (1..N)
     db.execute(
         text(
@@ -172,13 +222,13 @@ def start_draft(
         {"lid": league_id},
     )
 
-
     # Start drafting
     db.execute(
         text("update public.leagues set status='drafting' where id=:lid"),
         {"lid": league_id},
     )
 
+    # Single commit for: league_events + draft positions + status update
     db.commit()
 
     order = db.execute(
@@ -194,7 +244,14 @@ def start_draft(
         {"lid": league_id},
     ).mappings().all()
 
-    return {"ok": True, "league_id": league_id, "status": "drafting", "draft_order": [dict(r) for r in order]}
+    return {
+        "ok": True,
+        "league_id": league_id,
+        "status": "drafting",
+        "draft_order": [dict(r) for r in order],
+        "draft_rounds": draft_rounds,
+        "auto_rounds": auto_count,
+    }
 
 
 @router.post("/{league_id}/lock")
@@ -261,7 +318,7 @@ def my_leagues(
     rows = db.execute(
         text(
             """
-            select l.id, l.code, l.name, l.status, l.commissioner_id, l.created_at
+            select l.id, l.code, l.name, l.status, l.commissioner_id, l.created_at, l.draft_rounds
             from public.leagues l
             join public.league_members m on m.league_id = l.id
             where m.user_id = :uid
@@ -284,7 +341,11 @@ def league_detail(
 
     league = db.execute(
         text(
-            "select id, code, name, status, commissioner_id, created_at from public.leagues where id = :lid"
+            """
+            select id, code, name, status, commissioner_id, draft_rounds, created_at
+            from public.leagues
+            where id = :lid
+            """
         ),
         {"lid": league_id},
     ).mappings().first()
