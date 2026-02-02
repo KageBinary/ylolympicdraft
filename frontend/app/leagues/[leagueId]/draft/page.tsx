@@ -231,8 +231,19 @@ export default function DraftRoomPage() {
 
   if (!state) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-50">
-        <div className="text-sm text-zinc-500">Loading draft...</div>
+      <main className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-white/70 bg-white/90 p-6 text-center shadow-lg shadow-slate-900/5">
+          <h1 className="text-lg font-black uppercase tracking-[0.12em] text-slate-700">Draft room</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            {err || "Loading draft..."}
+          </p>
+          <button
+            onClick={() => r.push(`/leagues/${leagueId}`)}
+            className="mt-4 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+          >
+            Back to league
+          </button>
+        </div>
       </main>
     );
   }

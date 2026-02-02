@@ -52,6 +52,8 @@ export default function LeagueDetailPage() {
     );
   }
 
+  const draftStarted = data.league?.status !== "lobby";
+
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-5xl rounded-3xl border border-white/70 bg-white/80 p-6 shadow-xl shadow-sky-900/10 backdrop-blur sm:p-8">
@@ -85,10 +87,20 @@ export default function LeagueDetailPage() {
         <div className="mt-5 flex flex-wrap gap-2">
           <button
             onClick={() => r.push(`/leagues/${leagueId}/draft`)}
-            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
+            className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition ${
+              draftStarted
+                ? "bg-slate-900 hover:-translate-y-0.5 hover:bg-slate-800"
+                : "cursor-not-allowed bg-slate-300"
+            }`}
+            disabled={!draftStarted}
           >
             Open draft room
           </button>
+          {!draftStarted && (
+            <span className="flex items-center text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              Start the draft first
+            </span>
+          )}
           <button
             onClick={() => r.push(`/leagues/${leagueId}/team`)}
             className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:-translate-y-0.5 hover:bg-emerald-100"
