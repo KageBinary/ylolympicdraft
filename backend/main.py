@@ -32,3 +32,7 @@ app.include_router(events_router)
 app.include_router(draft_router)
 app.include_router(results_router)
 app.include_router(entries.router)
+@app.get("/health")
+def health():
+    return {"ok": True}
+
