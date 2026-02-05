@@ -4,12 +4,25 @@ import { useEffect, useState } from "react";
 import { api, clearToken } from "../../lib/api";
 import { useRouter, useParams } from "next/navigation";
 
+type LeaderboardRow = {
+  user_id: string;
+  username: string;
+  points: number;
+};
+
+type LeaderboardResponse = {
+  league_id: string;
+  scoring: Record<string, number>;
+  rows: LeaderboardRow[];
+};
+
 export default function LeagueDetailPage() {
   const r = useRouter();
   const params = useParams<{ leagueId: string }>();
   const leagueId = params.leagueId;
 
   const [data, setData] = useState<any>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
   async function load() {
@@ -17,6 +30,12 @@ export default function LeagueDetailPage() {
     try {
       const out = await api<any>(`/leagues/${leagueId}`);
       setData(out);
+      try {
+        const lb = await api<LeaderboardResponse>(`/results/leaderboard?league_id=${encodeURIComponent(leagueId)}`);
+        setLeaderboard(lb.rows || []);
+      } catch {
+        setLeaderboard([]);
+      }
     } catch (e: any) {
       setErr(e.message || "Failed");
     }
@@ -53,6 +72,7 @@ export default function LeagueDetailPage() {
   }
 
   const draftStarted = data.league?.status !== "lobby";
+  const leader = leaderboard.length > 0 ? leaderboard[0] : null;
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
@@ -107,6 +127,12 @@ export default function LeagueDetailPage() {
           >
             View my team
           </button>
+          <button
+            onClick={() => r.push(`/leagues/${leagueId}/leaderboard`)}
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:-translate-y-0.5 hover:bg-amber-100"
+          >
+            Leaderboard
+          </button>
           {data.league?.status === "lobby" && (
             <button
               onClick={startDraft}
@@ -114,6 +140,18 @@ export default function LeagueDetailPage() {
             >
               Start draft
             </button>
+          )}
+        </div>
+
+        <h2 className="mt-8 text-lg font-black text-slate-900">Current leader</h2>
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {leader ? (
+            <>
+              <span className="font-black">{leader.username}</span>
+              <span className="ml-2 text-amber-700">({leader.points} pts)</span>
+            </>
+          ) : (
+            <span className="text-amber-800">No leaderboard data yet.</span>
           )}
         </div>
 
