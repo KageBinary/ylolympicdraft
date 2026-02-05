@@ -9,6 +9,7 @@ from api.routes.leagues import router as leagues_router
 from api.routes.events import router as events_router
 from api.routes.draft import router as draft_router
 from api.routes.results import router as results_router
+from api.routes.admin import router as admin_router
 from api.routes import entries
 
 
@@ -31,6 +32,7 @@ app.include_router(leagues_router)
 app.include_router(events_router)
 app.include_router(draft_router)
 app.include_router(results_router)
+app.include_router(admin_router)
 app.include_router(entries.router)
 @app.get("/health")
 def health():

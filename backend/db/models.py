@@ -157,3 +157,22 @@ class LeagueEventResult(Base):
         UniqueConstraint("league_id", "event_id", "place", name="uq_result_place"),
         UniqueConstraint("league_id", "event_id", "entry_key", name="uq_result_no_dupe_entry"),
     )
+
+
+class GlobalEventResult(Base):
+    """
+    Single source of truth results for each event across all leagues.
+    """
+    __tablename__ = "global_event_results"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_id = Column(UUID(as_uuid=True), ForeignKey("events.id"), nullable=False, index=True)
+    place = Column(Integer, nullable=False)  # 1..10
+    entry_key = Column(Text, nullable=False)
+    entry_name = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("event_id", "place", name="uq_global_result_place"),
+        UniqueConstraint("event_id", "entry_key", name="uq_global_result_no_dupe_entry"),
+    )

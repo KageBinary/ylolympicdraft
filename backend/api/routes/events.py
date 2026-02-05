@@ -71,13 +71,32 @@ def _get_results_for_event(db: Session, league_id: str, event_id: str):
         text(
             """
             select place, entry_key, entry_name, created_at
-            from public.league_event_results
-            where league_id = :lid and event_id = :eid
+            from public.global_event_results
+            where event_id = :eid
             order by place asc
             """
         ),
-        {"lid": league_id, "eid": event_id},
+        {"eid": event_id},
     ).mappings().all()
+
+
+def _ensure_global_results_table(db: Session) -> None:
+    db.execute(
+        text(
+            """
+            create table if not exists public.global_event_results (
+              id uuid primary key default gen_random_uuid(),
+              event_id uuid not null references public.events(id),
+              place int not null,
+              entry_key text not null,
+              entry_name text not null,
+              created_at timestamptz not null default now(),
+              unique (event_id, place),
+              unique (event_id, entry_key)
+            )
+            """
+        )
+    )
 
 
 def _compute_draft_context(db: Session, league_id: str):
@@ -170,6 +189,7 @@ def event_summary_for_league(
     user=Depends(get_current_user),
 ):
     _require_member(db, league_id, user["id"])
+    _ensure_global_results_table(db)
 
     event = db.execute(
         text(

@@ -76,12 +76,20 @@ export default function LeaguesPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">League Hub</p>
               <h1 className="mt-1 text-3xl font-black text-slate-900 sm:text-4xl">My Leagues</h1>
             </div>
-            <button
-              onClick={logout}
-              className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => r.push("/admin/results")}
+                className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+              >
+                Global admin
+              </button>
+              <button
+                onClick={logout}
+                className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-2">

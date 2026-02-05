@@ -9,8 +9,8 @@ from api.deps import get_current_user
 router = APIRouter(prefix="/results", tags=["results"])
 
 
-# Deterministic scoring for places 1..10
-POINTS = {1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1}
+# Global scoring for places 1..10
+POINTS = {1: 8, 2: 5, 3: 3, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1}
 MAX_PLACE = max(POINTS.keys())
 
 
@@ -63,69 +63,35 @@ def _require_locked(db: Session, league_id: str) -> None:
         raise HTTPException(status_code=409, detail=f"League not locked (status: {row['status']})")
 
 
+def _ensure_global_results_table(db: Session) -> None:
+    db.execute(
+        text(
+            """
+            create table if not exists public.global_event_results (
+              id uuid primary key default gen_random_uuid(),
+              event_id uuid not null references public.events(id),
+              place int not null,
+              entry_key text not null,
+              entry_name text not null,
+              created_at timestamptz not null default now(),
+              unique (event_id, place),
+              unique (event_id, entry_key)
+            )
+            """
+        )
+    )
+
+
 @router.post("/submit")
 def submit_results(
     body: SubmitResultsIn,
     db: Session = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    _require_commissioner(db, body.league_id, user["id"])
-    _require_locked(db, body.league_id)
-
-    if not body.placements:
-        raise HTTPException(status_code=400, detail="Provide at least one placement")
-    if len(body.placements) > MAX_PLACE:
-        raise HTTPException(status_code=400, detail=f"Provide at most {MAX_PLACE} placements")
-
-    places = sorted([int(p.place) for p in body.placements])
-    if len(set(places)) != len(places):
-        raise HTTPException(status_code=400, detail="Placements contain duplicate place")
-    expected = list(range(1, places[-1] + 1))
-    if places != expected:
-        raise HTTPException(status_code=400, detail="Placements must be contiguous starting at place 1")
-
-    # Prevent duplicates in payload itself
-    entry_keys = [p.entry_key.strip() for p in body.placements]
-    if len(set(entry_keys)) != len(entry_keys):
-        raise HTTPException(status_code=400, detail="Placements contain duplicate entry_key")
-
-    # Replace results for (league,event)
-    try:
-        db.execute(
-            text(
-                """
-                delete from public.league_event_results
-                where league_id=:lid and event_id=:eid
-                """
-            ),
-            {"lid": body.league_id, "eid": body.event_id},
-        )
-
-        for p in body.placements:
-            db.execute(
-                text(
-                    """
-                    insert into public.league_event_results
-                      (league_id, event_id, place, entry_key, entry_name)
-                    values
-                      (:lid, :eid, :place, :ek, :en)
-                    """
-                ),
-                {
-                    "lid": body.league_id,
-                    "eid": body.event_id,
-                    "place": int(p.place),
-                    "ek": p.entry_key.strip(),
-                    "en": p.entry_name.strip(),
-                },
-            )
-
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=409, detail="Failed to submit results (duplicate place/entry?)")
-
-    return {"ok": True, "count": len(body.placements)}
+    raise HTTPException(
+        status_code=410,
+        detail="Per-league submit is disabled. Use /admin/results/import-global (results admin only).",
+    )
 
 
 @router.get("/event")
@@ -136,17 +102,18 @@ def get_event_results(
     user=Depends(get_current_user),
 ):
     _require_member(db, league_id, user["id"])
+    _ensure_global_results_table(db)
 
     rows = db.execute(
         text(
             """
             select place, entry_key, entry_name, created_at
-            from public.league_event_results
-            where league_id=:lid and event_id=:eid
+            from public.global_event_results
+            where event_id=:eid
             order by place asc
             """
         ),
-        {"lid": league_id, "eid": event_id},
+        {"eid": event_id},
     ).mappings().all()
 
     return {"league_id": league_id, "event_id": event_id, "placements": [dict(r) for r in rows]}
@@ -159,6 +126,7 @@ def leaderboard(
     user=Depends(get_current_user),
 ):
     _require_member(db, league_id, user["id"])
+    _ensure_global_results_table(db)
 
     # points = sum over picks that match results by (league,event,entry_key)
     rows = db.execute(
@@ -169,15 +137,15 @@ def leaderboard(
               u.username as username,
               coalesce(sum(
                 case r.place
-                  when 1 then 10
-                  when 2 then 9
-                  when 3 then 8
-                  when 4 then 7
-                  when 5 then 6
-                  when 6 then 5
-                  when 7 then 4
-                  when 8 then 3
-                  when 9 then 2
+                  when 1 then 8
+                  when 2 then 5
+                  when 3 then 3
+                  when 4 then 1
+                  when 5 then 1
+                  when 6 then 1
+                  when 7 then 1
+                  when 8 then 1
+                  when 9 then 1
                   when 10 then 1
                   else 0
                 end
@@ -188,10 +156,9 @@ def leaderboard(
             left join public.draft_picks p
               on p.league_id = m.league_id
              and p.user_id = m.user_id
-            left join public.league_event_results r
-              on r.league_id = p.league_id
-             and r.event_id = p.event_id
-             and r.entry_key = p.entry_key
+            left join public.global_event_results r
+              on r.event_id = p.event_id
+              and r.entry_key = p.entry_key
             where m.league_id = :lid
             group by u.id, u.username
             order by points desc, u.username asc

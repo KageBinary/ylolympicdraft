@@ -16,6 +16,8 @@ class Settings:
             os.getenv("FRONTEND_ORIGINS", os.getenv("FRONTEND_ORIGIN", "http://localhost:3000"))
         )
     )
+    results_admin_username: str = os.getenv("RESULTS_ADMIN_USERNAME", "").strip()
+    results_admin_password: str = os.getenv("RESULTS_ADMIN_PASSWORD", "")
 
 settings = Settings()
 
