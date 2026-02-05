@@ -185,6 +185,22 @@ def make_pick(
         raise HTTPException(status_code=409, detail="Not your turn")
 
     event_id = str(state["event"]["id"])
+    entry_row = db.execute(
+        text(
+            """
+            select entry_key, entry_name
+            from public.event_entries
+            where event_id = :eid
+              and entry_key = :ek
+            """
+        ),
+        {"eid": event_id, "ek": entry_key},
+    ).mappings().first()
+    if not entry_row:
+        raise HTTPException(status_code=400, detail="Invalid entry for this event")
+
+    # Use canonical DB name so picks stay consistent even if client sends stale/mismatched text.
+    entry_name = str(entry_row["entry_name"])
 
     try:
         # IMPORTANT: don't RETURN id (some schemas won't have it)
