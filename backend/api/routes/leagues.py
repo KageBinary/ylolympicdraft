@@ -209,33 +209,8 @@ def start_draft(
     member_count = int(member_count_row["c"]) if member_count_row else 0
 
     if auto_count > 0 and member_count > 0:
-        insufficient_entries = db.execute(
-            text(
-                """
-                with draft_events as (
-                  select id
-                  from public.events
-                  order by sort_order asc
-                  limit :draft_n
-                )
-                select e.id, count(ee.id) as entry_count
-                from public.events e
-                left join draft_events d on d.id = e.id
-                left join public.event_entries ee on ee.event_id = e.id
-                where d.id is null
-                group by e.id
-                having count(ee.id) < :member_count
-                limit 1
-                """
-            ),
-            {"draft_n": draft_rounds, "member_count": member_count},
-        ).mappings().first()
-        if insufficient_entries:
-            raise HTTPException(
-                status_code=409,
-                detail="Not enough entries to auto-assign for all auto events.",
-            )
-
+        # Best-effort auto-assignment:
+        # if an auto event has no entries yet, we leave it empty for now and can backfill later.
         db.execute(
             text(
                 """
@@ -285,6 +260,29 @@ def start_draft(
             ),
             {"lid": league_id, "draft_n": draft_rounds},
         )
+
+    auto_events_needing_backfill = 0
+    if auto_count > 0 and member_count > 0:
+        row = db.execute(
+            text(
+                """
+                select count(*) as c
+                from (
+                  select le.event_id
+                  from public.league_events le
+                  left join public.draft_picks p
+                    on p.league_id = le.league_id
+                   and p.event_id = le.event_id
+                  where le.league_id = :lid
+                    and le.mode = 'auto'
+                  group by le.event_id
+                  having count(p.user_id) < :member_count
+                ) t
+                """
+            ),
+            {"lid": league_id, "member_count": member_count},
+        ).mappings().first()
+        auto_events_needing_backfill = int(row["c"]) if row else 0
 
     # Assign random draft positions to current members (1..N)
     db.execute(
@@ -336,6 +334,7 @@ def start_draft(
         "draft_order": [dict(r) for r in order],
         "draft_rounds": draft_rounds,
         "auto_rounds": auto_count,
+        "auto_events_needing_backfill": auto_events_needing_backfill,
     }
 
 
