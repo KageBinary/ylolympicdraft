@@ -139,8 +139,8 @@ def start_draft(
     """
     Commissioner starts the draft:
     - generates league_events ONCE using leagues.draft_rounds
-      - draft events: first N events by sort_order
-      - auto events: remaining events
+      - draft events: random N from events that currently have enough entries
+      - auto events: every non-draft event
       - sort_order preserved from events.sort_order
     - auto-assigns one random entry per member for each auto event
     - randomizes draft order ONCE by assigning league_members.draft_position = 1..N
@@ -165,9 +165,43 @@ def start_draft(
     if events_count <= 0:
         raise HTTPException(status_code=400, detail="No events seeded")
 
+    member_count_row = db.execute(
+        text("select count(*) as c from public.league_members where league_id = :lid"),
+        {"lid": league_id},
+    ).mappings().first()
+    member_count = int(member_count_row["c"]) if member_count_row else 0
+    if member_count <= 0:
+        raise HTTPException(status_code=400, detail="League has no members")
+
+    draftable_events_row = db.execute(
+        text(
+            """
+            with entry_counts as (
+              select event_id, count(*) as c
+              from public.event_entries
+              group by event_id
+            )
+            select count(*) as c
+            from public.events e
+            left join entry_counts ec on ec.event_id = e.id
+            where coalesce(ec.c, 0) >= :member_count
+            """
+        ),
+        {"member_count": member_count},
+    ).mappings().first()
+    draftable_events_count = int(draftable_events_row["c"]) if draftable_events_row else 0
+
     draft_rounds = int(league["draft_rounds"])
-    if draft_rounds < 1 or draft_rounds > events_count:
-        raise HTTPException(status_code=400, detail="Invalid draft_rounds for current events")
+    if draft_rounds < 1:
+        raise HTTPException(status_code=400, detail="Invalid draft_rounds")
+    if draft_rounds > draftable_events_count:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Not enough events with entries for {draft_rounds} draft rounds "
+                f"(available now: {draftable_events_count})"
+            ),
+        )
 
     # Prevent double-generation (events should be generated exactly once)
     already = db.execute(
@@ -178,15 +212,28 @@ def start_draft(
         raise HTTPException(status_code=409, detail="League events already generated")
 
     auto_count = events_count - draft_rounds
+    auto_with_entries_count = draftable_events_count - draft_rounds
+    auto_waiting_for_entries_count = events_count - draftable_events_count
 
-    # Generate league_events: first N events are draft, remaining are auto
+    # Generate league_events: random N draftable events are draft, remaining are auto
     db.execute(
         text(
             """
-            with draft_events as (
+            with entry_counts as (
+              select event_id, count(*) as c
+              from public.event_entries
+              group by event_id
+            ),
+            draftable_events as (
               select id
-              from public.events
-              order by sort_order asc
+              from public.events e
+              left join entry_counts ec on ec.event_id = e.id
+              where coalesce(ec.c, 0) >= :member_count
+            ),
+            draft_events as (
+              select id
+              from draftable_events
+              order by random()
               limit :draft_n
             )
             insert into public.league_events (league_id, event_id, mode, sort_order)
@@ -199,14 +246,8 @@ def start_draft(
             left join draft_events d on d.id = e.id
             """
         ),
-        {"lid": league_id, "draft_n": draft_rounds},
+        {"lid": league_id, "draft_n": draft_rounds, "member_count": member_count},
     )
-
-    member_count_row = db.execute(
-        text("select count(*) as c from public.league_members where league_id = :lid"),
-        {"lid": league_id},
-    ).mappings().first()
-    member_count = int(member_count_row["c"]) if member_count_row else 0
 
     if auto_count > 0 and member_count > 0:
         # Best-effort auto-assignment:
@@ -214,16 +255,11 @@ def start_draft(
         db.execute(
             text(
                 """
-                with draft_events as (
-                  select id
-                  from public.events
-                  order by sort_order asc
-                  limit :draft_n
-                ),
-                auto_events as (
-                  select id
-                  from public.events
-                  where id not in (select id from draft_events)
+                with auto_events as (
+                  select event_id as id
+                  from public.league_events
+                  where league_id = :lid
+                    and mode = 'auto'
                 ),
                 members as (
                   select
@@ -258,7 +294,7 @@ def start_draft(
                  and re.pos = m.pos
                 """
             ),
-            {"lid": league_id, "draft_n": draft_rounds},
+            {"lid": league_id},
         )
 
     auto_events_needing_backfill = 0
@@ -334,6 +370,8 @@ def start_draft(
         "draft_order": [dict(r) for r in order],
         "draft_rounds": draft_rounds,
         "auto_rounds": auto_count,
+        "auto_rounds_with_entries": auto_with_entries_count,
+        "auto_rounds_waiting_for_entries": auto_waiting_for_entries_count,
         "auto_events_needing_backfill": auto_events_needing_backfill,
     }
 
