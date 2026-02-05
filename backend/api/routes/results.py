@@ -9,12 +9,13 @@ from api.deps import get_current_user
 router = APIRouter(prefix="/results", tags=["results"])
 
 
-# Deterministic scoring for places 1..8
-POINTS = {1: 10, 2: 8, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1}
+# Deterministic scoring for places 1..10
+POINTS = {1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1}
+MAX_PLACE = max(POINTS.keys())
 
 
 class PlacementIn(BaseModel):
-    place: conint(ge=1, le=8)  # type: ignore
+    place: conint(ge=1, le=MAX_PLACE)  # type: ignore
     entry_key: str = Field(min_length=1, max_length=200)
     entry_name: str = Field(min_length=1, max_length=200)
 
@@ -22,7 +23,7 @@ class PlacementIn(BaseModel):
 class SubmitResultsIn(BaseModel):
     league_id: str
     event_id: str
-    placements: list[PlacementIn]  # must include 1..8 exactly
+    placements: list[PlacementIn]
 
 
 def _require_member(db: Session, league_id: str, user_id: str) -> None:
@@ -71,16 +72,21 @@ def submit_results(
     _require_commissioner(db, body.league_id, user["id"])
     _require_locked(db, body.league_id)
 
-    if len(body.placements) != 8:
-        raise HTTPException(status_code=400, detail="Provide exactly 8 placements (1..8)")
+    if not body.placements:
+        raise HTTPException(status_code=400, detail="Provide at least one placement")
+    if len(body.placements) > MAX_PLACE:
+        raise HTTPException(status_code=400, detail=f"Provide at most {MAX_PLACE} placements")
 
     places = sorted([int(p.place) for p in body.placements])
-    if places != [1, 2, 3, 4, 5, 6, 7, 8]:
-        raise HTTPException(status_code=400, detail="Placements must be exactly places 1..8")
+    if len(set(places)) != len(places):
+        raise HTTPException(status_code=400, detail="Placements contain duplicate place")
+    expected = list(range(1, places[-1] + 1))
+    if places != expected:
+        raise HTTPException(status_code=400, detail="Placements must be contiguous starting at place 1")
 
     # Prevent duplicates in payload itself
     entry_keys = [p.entry_key.strip() for p in body.placements]
-    if len(set(entry_keys)) != 8:
+    if len(set(entry_keys)) != len(entry_keys):
         raise HTTPException(status_code=400, detail="Placements contain duplicate entry_key")
 
     # Replace results for (league,event)
@@ -119,7 +125,7 @@ def submit_results(
         db.rollback()
         raise HTTPException(status_code=409, detail="Failed to submit results (duplicate place/entry?)")
 
-    return {"ok": True}
+    return {"ok": True, "count": len(body.placements)}
 
 
 @router.get("/event")
@@ -164,13 +170,15 @@ def leaderboard(
               coalesce(sum(
                 case r.place
                   when 1 then 10
-                  when 2 then 8
-                  when 3 then 6
-                  when 4 then 5
-                  when 5 then 4
-                  when 6 then 3
-                  when 7 then 2
-                  when 8 then 1
+                  when 2 then 9
+                  when 3 then 8
+                  when 4 then 7
+                  when 5 then 6
+                  when 6 then 5
+                  when 7 then 4
+                  when 8 then 3
+                  when 9 then 2
+                  when 10 then 1
                   else 0
                 end
               ), 0) as points

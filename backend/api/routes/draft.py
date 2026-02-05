@@ -58,27 +58,44 @@ def _get_members_in_draft_order(db: Session, league_id: str):
     return members
 
 
-def _get_events_in_order(db: Session, league_id: str):
-    # League-specific draft events (generated on /leagues/{league_id}/start)
-    events = db.execute(
+def _get_events_in_order(db: Session, league_id: str, member_count: int):
+    total_draft_events_row = db.execute(
         text(
             """
-            select e.id, e.sport, e.name, e.event_key, e.is_team_event, le.sort_order
-            from public.league_events le
-            join public.events e on e.id = le.event_id
-            where le.league_id = :lid and le.mode = 'draft'
-            order by le.sort_order asc
+            select count(*) as c
+            from public.league_events
+            where league_id = :lid and mode = 'draft'
             """
         ),
         {"lid": league_id},
-    ).mappings().all()
-
-    if not events:
+    ).mappings().first()
+    total_draft_events = int(total_draft_events_row["c"]) if total_draft_events_row else 0
+    if total_draft_events <= 0:
         # Either events not seeded or league_events not generated yet.
         # start_draft generates league_events, so this message is the most helpful.
         raise HTTPException(status_code=409, detail="Draft events not set. Commissioner must start the draft.")
 
-    return events
+    # Ignore draft events that currently cannot support one unique pick per member.
+    return db.execute(
+        text(
+            """
+            with entry_counts as (
+              select event_id, count(*) as c
+              from public.event_entries
+              group by event_id
+            )
+            select e.id, e.sport, e.name, e.event_key, e.is_team_event, le.sort_order
+            from public.league_events le
+            join public.events e on e.id = le.event_id
+            left join entry_counts ec on ec.event_id = e.id
+            where le.league_id = :lid
+              and le.mode = 'draft'
+              and coalesce(ec.c, 0) >= :member_count
+            order by le.sort_order asc
+            """
+        ),
+        {"lid": league_id, "member_count": member_count},
+    ).mappings().all()
 
 
 def _get_picks_for_event(db: Session, league_id: str, event_id: str):
@@ -100,9 +117,8 @@ def _get_picks_for_event(db: Session, league_id: str, event_id: str):
 def _current_state(db: Session, league_id: str):
     members = _get_members_in_draft_order(db, league_id)
 
-    events = _get_events_in_order(db, league_id)
-
     n = len(members)
+    events = _get_events_in_order(db, league_id, n)
 
     for idx, ev in enumerate(events):
         picks = _get_picks_for_event(db, league_id, str(ev["id"]))
