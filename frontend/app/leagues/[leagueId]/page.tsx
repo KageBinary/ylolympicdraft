@@ -107,6 +107,12 @@ export default function LeagueDetailPage() {
           >
             View my team
           </button>
+          <button
+            onClick={() => r.push(`/leagues/${leagueId}/admin`)}
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800 transition hover:-translate-y-0.5 hover:bg-amber-100"
+          >
+            Admin tools
+          </button>
           {data.league?.status === "lobby" && (
             <button
               onClick={startDraft}
