@@ -184,7 +184,7 @@ def start_draft(
             select count(*) as c
             from public.events e
             left join entry_counts ec on ec.event_id = e.id
-            where coalesce(ec.c, 0) >= :member_count
+            where coalesce(ec.c, 0) > :member_count
             """
         ),
         {"member_count": member_count},
@@ -215,7 +215,9 @@ def start_draft(
     auto_with_entries_count = draftable_events_count - draft_rounds
     auto_waiting_for_entries_count = events_count - draftable_events_count
 
-    # Generate league_events: random N draftable events are draft, remaining are auto
+    # Generate league_events:
+    # - draft mode uses a random subset of events with more entries than league member count
+    # - all other events are auto mode
     db.execute(
         text(
             """
@@ -225,10 +227,10 @@ def start_draft(
               group by event_id
             ),
             draftable_events as (
-              select id
+              select e.id, coalesce(ec.c, 0) as entry_count
               from public.events e
               left join entry_counts ec on ec.event_id = e.id
-              where coalesce(ec.c, 0) >= :member_count
+              where coalesce(ec.c, 0) > :member_count
             ),
             draft_events as (
               select id
@@ -250,8 +252,7 @@ def start_draft(
     )
 
     if auto_count > 0 and member_count > 0:
-        # Best-effort auto-assignment:
-        # if an auto event has no entries yet, we leave it empty for now and can backfill later.
+        # Auto-assign non-draft events that have enough unique entries (no repeats needed).
         db.execute(
             text(
                 """
@@ -264,9 +265,25 @@ def start_draft(
                 members as (
                   select
                     user_id,
-                    row_number() over (order by user_id) as pos
+                    row_number() over (order by user_id) as member_pos
                   from public.league_members
                   where league_id = :lid
+                ),
+                auto_event_counts as (
+                  select
+                    ae.id as event_id,
+                    coalesce(ec.c, 0) as entry_count
+                  from auto_events ae
+                  left join (
+                    select event_id, count(*) as c
+                    from public.event_entries
+                    group by event_id
+                  ) ec on ec.event_id = ae.id
+                ),
+                enough_events as (
+                  select event_id
+                  from auto_event_counts
+                  where entry_count >= :member_count
                 ),
                 ranked_entries as (
                   select
@@ -276,25 +293,102 @@ def start_draft(
                     row_number() over (
                       partition by ee.event_id
                       order by random()
-                    ) as pos
+                    ) as entry_pos
                   from public.event_entries ee
-                  join auto_events ae on ae.id = ee.event_id
+                  join enough_events eev on eev.event_id = ee.event_id
                 )
                 insert into public.draft_picks (league_id, event_id, user_id, entry_key, entry_name)
                 select
                   :lid,
-                  ae.id,
+                  eev.event_id,
                   m.user_id,
                   re.entry_key,
                   re.entry_name
-                from auto_events ae
+                from enough_events eev
                 cross join members m
                 join ranked_entries re
-                  on re.event_id = ae.id
-                 and re.pos = m.pos
+                  on re.event_id = eev.event_id
+                 and re.entry_pos = m.member_pos
                 """
             ),
-            {"lid": league_id},
+            {"lid": league_id, "member_count": member_count},
+        )
+
+        # Auto-assign non-draft events that do NOT have enough unique entries.
+        # In this case, cycle entries and suffix duplicate keys so DB uniqueness is preserved.
+        db.execute(
+            text(
+                """
+                with auto_events as (
+                  select event_id as id
+                  from public.league_events
+                  where league_id = :lid
+                    and mode = 'auto'
+                ),
+                members as (
+                  select
+                    user_id,
+                    row_number() over (order by user_id) as member_pos
+                  from public.league_members
+                  where league_id = :lid
+                ),
+                auto_event_counts as (
+                  select
+                    ae.id as event_id,
+                    coalesce(ec.c, 0) as entry_count
+                  from auto_events ae
+                  left join (
+                    select event_id, count(*) as c
+                    from public.event_entries
+                    group by event_id
+                  ) ec on ec.event_id = ae.id
+                ),
+                short_events as (
+                  select event_id, entry_count
+                  from auto_event_counts
+                  where entry_count > 0
+                    and entry_count < :member_count
+                ),
+                ranked_entries as (
+                  select
+                    ee.event_id,
+                    ee.entry_key,
+                    ee.entry_name,
+                    row_number() over (
+                      partition by ee.event_id
+                      order by random()
+                    ) as entry_pos
+                  from public.event_entries ee
+                  join short_events se on se.event_id = ee.event_id
+                ),
+                member_slots as (
+                  select
+                    se.event_id,
+                    se.entry_count,
+                    m.user_id,
+                    m.member_pos,
+                    ((m.member_pos - 1) % se.entry_count) + 1 as desired_entry_pos
+                  from short_events se
+                  cross join members m
+                )
+                insert into public.draft_picks (league_id, event_id, user_id, entry_key, entry_name)
+                select
+                  :lid,
+                  ms.event_id,
+                  ms.user_id,
+                  case
+                    when ms.member_pos <= ms.entry_count then re.entry_key
+                    else re.entry_key || '__AUTO_DUP__' || ms.member_pos::text
+                  end as entry_key,
+                  re.entry_name
+                from member_slots ms
+                join ranked_entries re
+                  on re.event_id = ms.event_id
+                 and re.entry_pos = ms.desired_entry_pos
+                on conflict do nothing
+                """
+            ),
+            {"lid": league_id, "member_count": member_count},
         )
 
     auto_events_needing_backfill = 0

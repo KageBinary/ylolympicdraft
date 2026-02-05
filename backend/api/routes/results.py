@@ -158,7 +158,7 @@ def leaderboard(
              and p.user_id = m.user_id
             left join public.global_event_results r
               on r.event_id = p.event_id
-              and r.entry_key = p.entry_key
+              and r.entry_key = split_part(p.entry_key, '__AUTO_DUP__', 1)
             where m.league_id = :lid
             group by u.id, u.username
             order by points desc, u.username asc
